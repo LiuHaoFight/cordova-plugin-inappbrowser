@@ -1,4 +1,6 @@
 /*
+ Customized for siemens
+ 
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
  distributed with this work for additional information
@@ -748,6 +750,8 @@ BOOL isExiting = FALSE;
 - (void)createViews
 {
     // We create the views in code for primarily for ease of upgrades and not requiring an external .xib to be included
+    UIColor *bgColor = [UIColor colorWithRed:242/255.0 green:243/255.0 blue:244/255.0 alpha:1];
+//    bgColor = [UIColor lightGrayColor];
     
     CGRect webViewBounds = self.view.bounds;
     BOOL toolbarIsAtBottom = ![_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop];
@@ -784,7 +788,9 @@ BOOL isExiting = FALSE;
     
     self.webView.navigationDelegate = self;
     self.webView.UIDelegate = self.webViewUIDelegate;
-    self.webView.backgroundColor = [UIColor whiteColor];
+//    self.webView.backgroundColor = [UIColor whiteColor];
+    self.webView.backgroundColor = bgColor;
+    self.webView.scrollView.backgroundColor = bgColor;
     
     self.webView.clearsContextBeforeDrawing = YES;
     self.webView.clipsToBounds = YES;
@@ -818,8 +824,11 @@ BOOL isExiting = FALSE;
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
     
+ 
     self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
+    self.closeButton.title =@"返回";
     self.closeButton.enabled = YES;
+    
     
     UIBarButtonItem* flexibleSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
     
@@ -841,6 +850,7 @@ BOOL isExiting = FALSE;
     self.toolbar.multipleTouchEnabled = NO;
     self.toolbar.opaque = NO;
     self.toolbar.userInteractionEnabled = YES;
+    self.toolbar.backgroundColor = [UIColor whiteColor];
     if (_browserOptions.toolbarcolor != nil) { // Set toolbar color if user sets it in options
       self.toolbar.barTintColor = [self colorFromHexString:_browserOptions.toolbarcolor];
     }
@@ -881,20 +891,28 @@ BOOL isExiting = FALSE;
     self.addressLabel.userInteractionEnabled = NO;
     
     NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
-    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    UIImage *forwardImage = [UIImage imageNamed:@"ib_arrow_right"];
+    UIImage *backImage = [UIImage imageNamed:@"ib_arrow_left"];
+//    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    self.forwardButton = [[UIBarButtonItem alloc] initWithImage:forwardImage style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    //self.forwardButton
     self.forwardButton.enabled = YES;
     self.forwardButton.imageInsets = UIEdgeInsetsZero;
     if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
       self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+//        self.forwardButton.tintColor = [UIColor blackColor];
     }
+    self.forwardButton.tintColor = [UIColor blackColor];
 
     NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
-    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
+//    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
+    self.backButton = [[UIBarButtonItem alloc] initWithImage:backImage style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
     self.backButton.enabled = YES;
     self.backButton.imageInsets = UIEdgeInsetsZero;
     if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
       self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
     }
+    self.backButton.tintColor = [UIColor blackColor];
 
     // Filter out Navigation Buttons if user requests so
     if (_browserOptions.hidenavigationbuttons) {
@@ -909,10 +927,64 @@ BOOL isExiting = FALSE;
         [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
     }
     
-    self.view.backgroundColor = [UIColor grayColor];
+    // errorView
+    self.errorView = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetMidX(self.webView.frame) - 100.0, CGRectGetMidY(self.webView.frame) - 150.0, 200.0, 300.0)];
+    self.errorView.backgroundColor = bgColor;
+    UIImage * errorImg = [UIImage imageNamed:@"ib_error_img"];
+    UIImageView *errorImgView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 200, 142)];
+    errorImgView.image = errorImg;
+    [self.errorView addSubview:errorImgView];
+    UILabel *errorLabel = [self getErrorLabel];
+//    [[UILabel alloc] initWithFrame:CGRectMake(0, 142, 200, 30)];
+//    errorLabel.textColor = [UIColor blackColor];
+//    errorLabel.text = @"加载失败";
+//    errorLabel.textAlignment = NSTextAlignmentCenter;
+    
+    [self.errorView addSubview:errorLabel];
+    UIButton *errorButton = [[UIButton alloc] initWithFrame:CGRectMake(60, 180, 80, 28)];
+    errorButton.backgroundColor = bgColor;
+    [errorButton setTitle:@"重试" forState:UIControlStateNormal];
+    UIColor *btnColor = [UIColor colorWithRed:65/255.0 green:170/255.0 blue:170/255.0 alpha:1];
+
+    UIFont * font= [UIFont fontWithName:@"PingFangSC-Regular" size:14];
+
+    if (font == nil) {
+        font = [UIFont systemFontOfSize:14];
+    }
+    [errorButton.titleLabel setFont:font];
+    [errorButton setTitleColor:btnColor forState:UIControlStateNormal];
+    [errorButton.layer setMasksToBounds:YES];
+    [errorButton.layer setBorderWidth:1.0];
+    errorButton.layer.borderColor = btnColor.CGColor;
+    [errorButton.layer setCornerRadius:4.0];
+    [self.errorView addSubview:errorButton];
+    [errorButton addTarget:self action:@selector(reload) forControlEvents:UIControlEventTouchUpInside];
+    
+    self.view.backgroundColor = [UIColor whiteColor];
+//    self.view.backgroundColor = bgColor;
     [self.view addSubview:self.toolbar];
     [self.view addSubview:self.addressLabel];
     [self.view addSubview:self.spinner];
+    [self.view addSubview:self.errorView];
+    self.errorView.hidden = YES;
+}
+-(UILabel*) getErrorLabel {
+    UILabel *label = [[UILabel alloc] init];
+    label.frame = CGRectMake(0,142,200,30);
+    label.numberOfLines = 0;
+//    [self.view addSubview:label];
+    UIFont * font= [UIFont fontWithName:@"PingFangSC-Regular" size:20];
+
+    if (font == nil) {
+        font = [UIFont systemFontOfSize:20];
+    }
+    label.textAlignment = NSTextAlignmentCenter;
+    NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:@"加载失败"attributes: @{NSFontAttributeName: font,NSForegroundColorAttributeName: [UIColor colorWithRed:60/255.0 green:70/255.0 blue:75/255.0 alpha:1.0]}];
+
+    label.attributedText = string;
+    label.textAlignment = NSTextAlignmentCenter;
+    label.alpha = 1.0;
+    return label;
 }
 
 - (void) setWebViewFrame : (CGRect) frame {
@@ -930,6 +1002,18 @@ BOOL isExiting = FALSE;
     self.closeButton.enabled = YES;
     // If color on closebutton is requested then initialize with that that color, otherwise use initialize with default
     self.closeButton.tintColor = colorString != nil ? [self colorFromHexString:colorString] : [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
+   
+    UIImage *arrow = [UIImage imageNamed:@"arrow"];
+    UIButton *arrowBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    arrowBtn.bounds = CGRectMake( 0, 0, arrow.size.width + 30, arrow.size.height );
+    [arrowBtn setImage:arrow forState:UIControlStateNormal];
+    [arrowBtn setTitle:@"返回" forState:UIControlStateNormal];
+    [arrowBtn setTintColor:UIColor.blackColor];
+    [arrowBtn setTitleColor:UIColor.blackColor forState:UIControlStateNormal];
+    [arrowBtn addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
+    self.closeButton = [[UIBarButtonItem alloc] initWithCustomView:arrowBtn];
+    [self.closeButton setTarget:self];
+    [self.closeButton setAction:@selector(close)];
     
     NSMutableArray* items = [self.toolbar.items mutableCopy];
     [items replaceObjectAtIndex:buttonIndex withObject:self.closeButton];
@@ -1092,6 +1176,15 @@ BOOL isExiting = FALSE;
 
 - (void)navigateTo:(NSURL*)url
 {
+//    if ([url.absoluteString isEqualToString:@"http://new.lpj.com"]) {
+//        url = [NSURL URLWithString:@"https://puma-app-warehouse-public-prod.s3.cn-north-1.amazonaws.com.cn/shopping-link/index.html"];
+//
+//    } else if(url == nil){
+//         url = [NSURL URLWithString:@"https://puma-app-warehouse-public-prod.s3.cn-north-1.amazonaws.com.cn/shopping-link/index.html"];
+//    }else {
+//        url = [NSURL URLWithString:@"http://new.lpj.com"];
+//    }
+    
     NSURLRequest* request = [NSURLRequest requestWithURL:url];
     
     if (_userAgentLockToken != 0) {
@@ -1109,6 +1202,15 @@ BOOL isExiting = FALSE;
 - (void)goBack:(id)sender
 {
     [self.webView goBack];
+}
+
+- (void)reload
+{
+    self.errorView.hidden = YES;
+//    [self.webView reloadFromOrigin];
+   // NSLog(@"web url",@"");
+    [self navigateTo: self.webView.URL];
+   
 }
 
 - (void)goForward:(id)sender
@@ -1143,8 +1245,9 @@ BOOL isExiting = FALSE;
 }
 
 - (void) rePositionViews {
+    CGRect statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
     if ([_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop]) {
-        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT, self.webView.frame.size.width, self.webView.frame.size.height)];
+        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT + statusBarFrame.size.height, self.webView.frame.size.width, self.webView.frame.size.height)];
         [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
     }
 }
@@ -1169,7 +1272,7 @@ BOOL isExiting = FALSE;
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
-    
+    [self.webView evaluateJavaScript:@"document.body.style.backgroundColor=\"#ecf1f2\"" completionHandler:nil];
     NSLog(_browserOptions.hidespinner ? @"Yes" : @"No");
     if(!_browserOptions.hidespinner) {
         [self.spinner startAnimating];
@@ -1227,13 +1330,14 @@ BOOL isExiting = FALSE;
 - (void)webView:(WKWebView*)theWebView failedNavigation:(NSString*) delegateName withError:(nonnull NSError *)error{
     // log fail message, stop spinner, update back/forward
     NSLog(@"webView:%@ - %ld: %@", delegateName, (long)error.code, [error localizedDescription]);
+    [self.webView evaluateJavaScript:@"document.body.style.backgroundColor=\"#f2f3f4\"" completionHandler:nil];
     
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
     [self.spinner stopAnimating];
     
     self.addressLabel.text = NSLocalizedString(@"Load Error", nil);
-    
+    self.errorView.hidden = NO;
     [self.navigationDelegate webView:theWebView didFailNavigation:error];
 }
 
