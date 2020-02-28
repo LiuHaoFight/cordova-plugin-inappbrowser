@@ -1,7 +1,7 @@
 {
   "name": "cordova-plugin-inappbrowser",
   "version": "3.1.1-dev",
-  "description": "Cordova InAppBrowser Plugin",
+  "description": "Cordova InAppBrowser Plugin - OSVLABS",
   "types": "./types/index.d.ts",
   "cordova": {
     "id": "cordova-plugin-inappbrowser",
@@ -15,10 +15,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/apache/cordova-plugin-inappbrowser"
+    "url": "https://github.com/osvlabs/cordova-plugin-inappbrowser"
   },
   "bugs": {
-    "url": "https://github.com/apache/cordova-plugin-inappbrowser/issues"
+    "url": "https://github.com/osvlabs/cordova-plugin-inappbrowser/issues"
   },
   "keywords": [
     "cordova",

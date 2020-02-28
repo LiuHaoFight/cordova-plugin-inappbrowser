@@ -65,6 +65,11 @@
         <resource-file src="src/android/res/drawable-xhdpi/ic_action_remove.png" target="res/drawable-xhdpi/ic_action_remove.png" />
         <resource-file src="src/android/res/drawable-xxhdpi/ic_action_remove.png" target="res/drawable-xxhdpi/ic_action_remove.png" />
 
+        <resource-file src="src/android/res/drawable-hdpi/ib_error_img.png" target="res/drawable-hdpi/ib_error_img.png" />
+        <resource-file src="src/android/res/drawable-mdpi/ib_error_img.png" target="res/drawable-mdpi/ib_error_img.png" />
+        <resource-file src="src/android/res/drawable-xhdpi/ib_error_img.png" target="res/drawable-xhdpi/ib_error_img.png" />
+        <resource-file src="src/android/res/drawable-xxhdpi/ib_error_img.png" target="res/drawable-xxhdpi/ib_error_img.png" />
+
     </platform>
 
     <!-- ios -->
@@ -94,6 +99,21 @@
 	    <source-file src="src/ios/CDVWKInAppBrowser.m" />
 	    <header-file src="src/ios/CDVWKInAppBrowserUIDelegate.h" />
 	    <source-file src="src/ios/CDVWKInAppBrowserUIDelegate.m" />
+        <source-file src="src/ios/arrow.png" />
+        <source-file src="src/ios/arrow@2x.png" />
+        <source-file src="src/ios/arrow@3x.png" />
+
+        <source-file src="src/ios/ib_arrow_left.png" />
+        <source-file src="src/ios/ib_arrow_left@2x.png" />
+        <source-file src="src/ios/ib_arrow_left@3x.png" />
+
+        <source-file src="src/ios/ib_arrow_right.png" />
+        <source-file src="src/ios/ib_arrow_right@2x.png" />
+        <source-file src="src/ios/ib_arrow_right@3x.png" />
+
+        <source-file src="src/ios/ib_error_img.png" />
+        <source-file src="src/ios/ib_error_img@2x.png" />
+        <source-file src="src/ios/ib_error_img@3x.png" />
 
 	    <framework src="CoreGraphics.framework" />
     </platform>
